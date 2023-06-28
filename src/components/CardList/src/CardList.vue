@@ -7,10 +7,10 @@
     TableOutlined,
   } from '@ant-design/icons-vue';
   import { List, Card, Image, Typography, Tooltip, Slider, Avatar } from 'ant-design-vue';
-  import { Dropdown } from '/@/components/Dropdown';
-  import { BasicForm, useForm } from '/@/components/Form';
-  import { Button } from '/@/components/Button';
-  import { isFunction } from '/@/utils/is';
+  import { Dropdown } from '@/components/Dropdown';
+  import { BasicForm, useForm } from '@/components/Form';
+  import { Button } from '@/components/Button';
+  import { isFunction } from '@/utils/is';
   import { useSlider, grid } from './data';
   const ListItem = List.Item;
   const CardMeta = Card.Meta;

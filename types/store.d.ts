@@ -30,8 +30,15 @@ export interface ErrorLogInfo {
   time?: string;
 }
 
+export interface AppInfo {
+  id: string | number;
+  code: string;
+  name: string;
+  token: string;
+}
+
 export interface UserInfo {
-  userId: string | number;
+  id: string | number;
   username: string;
   realName: string;
   avatar: string;

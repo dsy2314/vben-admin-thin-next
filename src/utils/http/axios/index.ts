@@ -2,20 +2,20 @@
 // The axios configuration can be changed according to the project, just change the file, other files can be left unchanged
 
 import type { AxiosResponse } from 'axios';
-import type { RequestOptions, Result } from '/#/axios';
+import type { RequestOptions, Result } from '#/axios';
 import type { AxiosTransform, CreateAxiosOptions } from './axiosTransform';
 import { VAxios } from './Axios';
 import { checkStatus } from './checkStatus';
-import { useGlobSetting } from '/@/hooks/setting';
-import { useMessage } from '/@/hooks/web/useMessage';
-import { RequestEnum, ResultEnum, ContentTypeEnum } from '/@/enums/httpEnum';
-import { isString } from '/@/utils/is';
-import { getToken } from '/@/utils/auth';
-import { setObjToUrlParams, deepMerge } from '/@/utils';
-import { useErrorLogStoreWithOut } from '/@/store/modules/errorLog';
-import { useI18n } from '/@/hooks/web/useI18n';
+import { useGlobSetting } from '@/hooks/setting';
+import { useMessage } from '@/hooks/web/useMessage';
+import { RequestEnum, ResultEnum, ContentTypeEnum } from '@/enums/httpEnum';
+import { isString } from '@/utils/is';
+import { getToken } from '@/utils/auth';
+import { setObjToUrlParams, deepMerge } from '@/utils';
+import { useErrorLogStoreWithOut } from '@/store/modules/errorLog';
+import { useI18n } from '@/hooks/web/useI18n';
 import { joinTimestamp, formatRequestDate } from './helper';
-import { useUserStoreWithOut } from '/@/store/modules/user';
+import { useUserStoreWithOut } from '@/store/modules/user';
 
 const globSetting = useGlobSetting();
 const urlPrefix = globSetting.urlPrefix;
@@ -48,12 +48,12 @@ const transform: AxiosTransform = {
       throw new Error(t('sys.api.apiRequestFailed'));
     }
     //  这里 code，result，message为 后台统一的字段，需要在 types.ts内修改为项目自己的接口返回格式
-    const { code, result, message } = data;
+    const { code, data: resData, msg } = data;
 
     // 这里逻辑可以根据项目进行修改
     const hasSuccess = data && Reflect.has(data, 'code') && code === ResultEnum.SUCCESS;
     if (hasSuccess) {
-      return result;
+      return resData;
     }
 
     // 在此处根据自己项目的实际情况对不同的code执行不同的操作
@@ -67,8 +67,8 @@ const transform: AxiosTransform = {
         userStore.logout(true);
         break;
       default:
-        if (message) {
-          timeoutMsg = message;
+        if (msg) {
+          timeoutMsg = msg;
         }
     }
 
@@ -97,13 +97,22 @@ const transform: AxiosTransform = {
     const params = config.params || {};
     const data = config.data || false;
     formatDate && data && !isString(data) && formatRequestDate(data);
+    const token = getToken();
     if (config.method?.toUpperCase() === RequestEnum.GET) {
       if (!isString(params)) {
         // 给 get 请求加上时间戳参数，避免从缓存中拿数据。
-        config.params = Object.assign(params || {}, joinTimestamp(joinTime, false));
+        config.params = Object.assign(
+          params || {},
+          joinTimestamp(joinTime, false),
+          token ? { oauth: token } : {},
+        );
       } else {
         // 兼容restful风格
-        config.url = config.url + params + `${joinTimestamp(joinTime, true)}`;
+        config.url =
+          config.url +
+          params +
+          `${joinTimestamp(joinTime, true)}` +
+          `${token ? '&oauth=' + token : ''}`;
         config.params = undefined;
       }
     } else {
@@ -117,6 +126,9 @@ const transform: AxiosTransform = {
           config.data = params;
           config.params = undefined;
         }
+        if (token) {
+          config.data.oauth = token;
+        }
         if (joinParamsToUrl) {
           config.url = setObjToUrlParams(
             config.url as string,
@@ -129,6 +141,7 @@ const transform: AxiosTransform = {
         config.params = undefined;
       }
     }
+
     return config;
   },
 
@@ -144,6 +157,7 @@ const transform: AxiosTransform = {
         ? `${options.authenticationScheme} ${token}`
         : token;
     }
+
     return config;
   },
 
@@ -202,9 +216,9 @@ function createAxios(opt?: Partial<CreateAxiosOptions>) {
         authenticationScheme: '',
         timeout: 10 * 1000,
         // 基础接口地址
-        // baseURL: globSetting.apiUrl,
+        baseURL: globSetting.xstageUrl,
 
-        headers: { 'Content-Type': ContentTypeEnum.JSON },
+        headers: { 'Content-Type': ContentTypeEnum.FORM_URLENCODED },
         // 如果是form-data格式
         // headers: { 'Content-Type': ContentTypeEnum.FORM_URLENCODED },
         // 数据处理方式
@@ -224,7 +238,7 @@ function createAxios(opt?: Partial<CreateAxiosOptions>) {
           // 消息提示类型
           errorMessageMode: 'message',
           // 接口地址
-          apiUrl: globSetting.apiUrl,
+          // apiUrl: globSetting.apiUrl,
           // 接口拼接地址
           urlPrefix: urlPrefix,
           //  是否加入时间戳

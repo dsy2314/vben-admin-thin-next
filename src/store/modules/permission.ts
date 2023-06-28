@@ -1,32 +1,28 @@
-import type { AppRouteRecordRaw, Menu } from '/@/router/types';
+import type { AppRouteRecordRaw, Menu } from '@/router/types';
 
 import { defineStore } from 'pinia';
-import { store } from '/@/store';
-import { useI18n } from '/@/hooks/web/useI18n';
+import { store } from '@/store';
+import { useI18n } from '@/hooks/web/useI18n';
 import { useUserStore } from './user';
 import { useAppStoreWithOut } from './app';
 import { toRaw } from 'vue';
-import { transformObjToRoute, flatMultiLevelRoutes } from '/@/router/helper/routeHelper';
-import { transformRouteToMenu } from '/@/router/helper/menuHelper';
+import { transformObjToRoute, flatMultiLevelRoutes } from '@/router/helper/routeHelper';
+import { transformRouteToMenu, setChildMenu } from '@/router/helper/menuHelper';
 
-import projectSetting from '/@/settings/projectSetting';
+import projectSetting from '@/settings/projectSetting';
 
-import { PermissionModeEnum } from '/@/enums/appEnum';
+import { PermissionModeEnum } from '@/enums/appEnum';
 
-import { asyncRoutes } from '/@/router/routes';
-import { ERROR_LOG_ROUTE, PAGE_NOT_FOUND_ROUTE } from '/@/router/routes/basic';
+import { asyncRoutes } from '@/router/routes';
+import { ERROR_LOG_ROUTE, PAGE_NOT_FOUND_ROUTE } from '@/router/routes/basic';
 
-import { filter } from '/@/utils/helper/treeHelper';
+import { filter } from '@/utils/helper/treeHelper';
 
-import { getMenuList } from '/@/api/sys/menu';
-import { getPermCode } from '/@/api/sys/user';
-
-import { useMessage } from '/@/hooks/web/useMessage';
-import { PageEnum } from '/@/enums/pageEnum';
+import { useMessage } from '@/hooks/web/useMessage';
+import { PageEnum } from '@/enums/pageEnum';
+import { MenuAPI } from '@/api/xstage/menu';
 
 interface PermissionState {
-  // Permission code list
-  permCodeList: string[] | number[];
   // Whether the route has been dynamically added
   isDynamicAddedRoute: boolean;
   // To trigger a menu update
@@ -38,7 +34,6 @@ interface PermissionState {
 export const usePermissionStore = defineStore({
   id: 'app-permission',
   state: (): PermissionState => ({
-    permCodeList: [],
     // Whether the route has been dynamically added
     isDynamicAddedRoute: false,
     // To trigger a menu update
@@ -49,9 +44,6 @@ export const usePermissionStore = defineStore({
     frontMenuList: [],
   }),
   getters: {
-    getPermCodeList(): string[] | number[] {
-      return this.permCodeList;
-    },
     getBackMenuList(): Menu[] {
       return this.backMenuList;
     },
@@ -66,10 +58,6 @@ export const usePermissionStore = defineStore({
     },
   },
   actions: {
-    setPermCodeList(codeList: string[]) {
-      this.permCodeList = codeList;
-    },
-
     setBackMenuList(list: Menu[]) {
       this.backMenuList = list;
       list?.length > 0 && this.setLastBuildMenuTime();
@@ -88,13 +76,8 @@ export const usePermissionStore = defineStore({
     },
     resetState(): void {
       this.isDynamicAddedRoute = false;
-      this.permCodeList = [];
       this.backMenuList = [];
       this.lastBuildMenuTime = 0;
-    },
-    async changePermissionCode() {
-      const codeList = await getPermCode();
-      this.setPermCodeList(codeList);
     },
     async buildRoutesAction(): Promise<AppRouteRecordRaw[]> {
       const { t } = useI18n();
@@ -184,8 +167,22 @@ export const usePermissionStore = defineStore({
           // this function may only need to be executed once, and the actual project can be put at the right time by itself
           let routeList: AppRouteRecordRaw[] = [];
           try {
-            this.changePermissionCode();
-            routeList = (await getMenuList()) as AppRouteRecordRaw[];
+            const data = await MenuAPI.listMenuWithOperationByUserId();
+            const { allMenu = [], parentMenu = [] } = data;
+            const parentMenuList = JSON.parse(
+              JSON.stringify(parentMenu.filter((menu) => menu.displayFlag)),
+            );
+            const childMenuList = JSON.parse(
+              JSON.stringify(allMenu.filter((menu) => menu.parentId !== 0)),
+            );
+            parentMenuList.forEach((menu) => {
+              menu.path = menu.url;
+              menu.parent = null;
+              setChildMenu(menu, childMenuList);
+            });
+
+            console.log(parentMenuList);
+            routeList = parentMenuList;
           } catch (error) {
             console.error(error);
           }

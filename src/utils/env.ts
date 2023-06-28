@@ -1,6 +1,6 @@
-import type { GlobEnvConfig } from '/#/config';
+import type { GlobEnvConfig } from '#/config';
 
-import { warn } from '/@/utils/log';
+import { warn } from '@/utils/log';
 import pkg from '../../package.json';
 import { getConfigFileName } from '../../build/getConfigFileName';
 
@@ -28,6 +28,8 @@ export function getAppEnvConfig() {
     VITE_GLOB_APP_SHORT_NAME,
     VITE_GLOB_API_URL_PREFIX,
     VITE_GLOB_UPLOAD_URL,
+    VITE_GLOB_API_XSTAGE_URL,
+    VITE_GLOB_API_IMOLD_URL,
   } = ENV;
 
   if (!/^[a-zA-Z\_]*$/.test(VITE_GLOB_APP_SHORT_NAME)) {
@@ -42,6 +44,8 @@ export function getAppEnvConfig() {
     VITE_GLOB_APP_SHORT_NAME,
     VITE_GLOB_API_URL_PREFIX,
     VITE_GLOB_UPLOAD_URL,
+    VITE_GLOB_API_XSTAGE_URL,
+    VITE_GLOB_API_IMOLD_URL,
   };
 }
 

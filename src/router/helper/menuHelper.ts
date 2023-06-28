@@ -1,10 +1,31 @@
-import { AppRouteModule } from '/@/router/types';
-import type { MenuModule, Menu, AppRouteRecordRaw } from '/@/router/types';
-import { findPath, treeMap } from '/@/utils/helper/treeHelper';
+import { AppRouteModule } from '@/router/types';
+import type { MenuModule, Menu, AppRouteRecordRaw } from '@/router/types';
+import { findPath, treeMap } from '@/utils/helper/treeHelper';
 import { cloneDeep } from 'lodash-es';
-import { isUrl } from '/@/utils/is';
+import { isUrl } from '@/utils/is';
 import { RouteParams } from 'vue-router';
 import { toRaw } from 'vue';
+import { MenuModel } from '@/api/xstage/model/menu';
+
+export function setChildMenu(menu, menuList) {
+  const childMenuList: Array<MenuModel> = [];
+  menuList.forEach((item) => {
+    if (item.parentId === menu.id && item.displayFlag) {
+      item.path = item.url;
+      item.parent = JSON.parse(JSON.stringify(menu));
+      childMenuList.push(item);
+    }
+  });
+
+  childMenuList.sort((a, b) => a.sort - b.sort);
+  menu.children = childMenuList;
+
+  if (menu.children.length > 0) {
+    menu.children.forEach((childMenu) => {
+      setChildMenu(childMenu, menuList);
+    });
+  }
+}
 
 export function getAllParentPath<T = Recordable>(treeData: T[], path: string) {
   const menuList = findPath(treeData, (n) => n.path === path) as Menu[];

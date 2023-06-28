@@ -1,13 +1,13 @@
 import type { Router, RouteRecordRaw } from 'vue-router';
 
-import { usePermissionStoreWithOut } from '/@/store/modules/permission';
+import { usePermissionStoreWithOut } from '@/store/modules/permission';
 
-import { PageEnum } from '/@/enums/pageEnum';
-import { useUserStoreWithOut } from '/@/store/modules/user';
+import { PageEnum } from '@/enums/pageEnum';
+import { useUserStoreWithOut } from '@/store/modules/user';
 
-import { PAGE_NOT_FOUND_ROUTE } from '/@/router/routes/basic';
+import { PAGE_NOT_FOUND_ROUTE } from '@/router/routes/basic';
 
-import { RootRoute } from '/@/router/routes';
+import { RootRoute } from '@/router/routes';
 
 const LOGIN_PATH = PageEnum.BASE_LOGIN;
 
@@ -81,6 +81,7 @@ export function createPermissionGuard(router: Router) {
     }
 
     // get userinfo while last fetch time is empty
+    // 刷新时会执行
     if (userStore.getLastUpdateTime === 0) {
       try {
         await userStore.getUserInfoAction();

@@ -94,12 +94,12 @@
   } from '@ant-design/icons-vue';
   import LoginFormTitle from './LoginFormTitle.vue';
 
-  import { useI18n } from '/@/hooks/web/useI18n';
-  import { useMessage } from '/@/hooks/web/useMessage';
+  import { useI18n } from '@/hooks/web/useI18n';
+  import { useMessage } from '@/hooks/web/useMessage';
 
-  import { useUserStore } from '/@/store/modules/user';
+  import { useUserStore } from '@/store/modules/user';
   import { LoginStateEnum, useLoginState, useFormRules, useFormValid } from './useLogin';
-  import { useDesign } from '/@/hooks/web/useDesign';
+  import { useDesign } from '@/hooks/web/useDesign';
   //import { onKeyStroke } from '@vueuse/core';
 
   const ACol = Col;
@@ -119,8 +119,8 @@
   const rememberMe = ref(false);
 
   const formData = reactive({
-    account: 'vben',
-    password: '123456',
+    account: 'do',
+    password: '123',
   });
 
   const { validForm } = useFormValid(formRef);
@@ -135,8 +135,8 @@
     try {
       loading.value = true;
       const userInfo = await userStore.login({
-        password: data.password,
-        username: data.account,
+        ...data,
+        appCode: 'iMold',
         mode: 'none', //不要默认的错误提示
       });
       if (userInfo) {

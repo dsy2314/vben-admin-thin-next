@@ -40,14 +40,14 @@ export default ({ command, mode }: ConfigEnv): UserConfig => {
           find: 'vue-i18n',
           replacement: 'vue-i18n/dist/vue-i18n.cjs.js',
         },
-        // /@/xxxx => src/xxxx
+        // @/xxxx => src/xxxx
         {
-          find: /\/@\//,
+          find: /@\//,
           replacement: pathResolve('src') + '/',
         },
-        // /#/xxxx => types/xxxx
+        // #/xxxx => types/xxxx
         {
-          find: /\/#\//,
+          find: /#\//,
           replacement: pathResolve('types') + '/',
         },
       ],
@@ -58,6 +58,7 @@ export default ({ command, mode }: ConfigEnv): UserConfig => {
       port: VITE_PORT,
       // Load proxy configuration from .env
       proxy: createProxy(VITE_PROXY),
+      open: true,
     },
     build: {
       target: 'es2015',

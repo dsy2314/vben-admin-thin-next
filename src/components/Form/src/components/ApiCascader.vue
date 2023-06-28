@@ -21,10 +21,10 @@
 <script lang="ts">
   import { defineComponent, PropType, ref, unref, watch, watchEffect } from 'vue';
   import { Cascader } from 'ant-design-vue';
-  import { propTypes } from '/@/utils/propTypes';
-  import { isFunction } from '/@/utils/is';
+  import { propTypes } from '@/utils/propTypes';
+  import { isFunction } from '@/utils/is';
   import { get, omit } from 'lodash-es';
-  import { useRuleFormItem } from '/@/hooks/component/useFormItem';
+  import { useRuleFormItem } from '@/hooks/component/useFormItem';
   import { LoadingOutlined } from '@ant-design/icons-vue';
 
   interface Option {
