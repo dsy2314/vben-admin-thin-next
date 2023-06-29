@@ -7,24 +7,53 @@ import { RouteParams } from 'vue-router';
 import { toRaw } from 'vue';
 import { MenuModel } from '@/api/xstage/model/menu';
 
-export function setChildMenu(menu, menuList) {
-  const childMenuList: Array<MenuModel> = [];
-  menuList.forEach((item) => {
-    if (item.parentId === menu.id && item.displayFlag) {
-      item.path = item.url;
-      item.parent = JSON.parse(JSON.stringify(menu));
-      childMenuList.push(item);
+export function transformMenuToRoute(menuList) {
+  function getRouteData(menuItem) {
+    const routeItem = {
+      component: 'LAYOUT',
+      meta: { title: 'routes.dashboard.dashboard', hideChildrenInMenu: true, icon: 'bx:bx-home' },
+      name: menuItem.name,
+      path: menuItem.url,
+      redirect: '/',
+      children: [],
+    };
+
+    if (menuItem.children && menuItem.children.length > 0) {
+      menuItem.children = menuItem.children.map(getRouteData);
     }
-  });
 
-  childMenuList.sort((a, b) => a.sort - b.sort);
-  menu.children = childMenuList;
-
-  if (menu.children.length > 0) {
-    menu.children.forEach((childMenu) => {
-      setChildMenu(childMenu, menuList);
-    });
+    return routeItem;
   }
+
+  return menuList.map(getRouteData);
+}
+
+export function setMenuTree(parentMenuList, childMenuList) {
+  function setChildMenu(menu, menuList) {
+    const childMenuList: Array<MenuModel> = [];
+    menuList.forEach((item) => {
+      if (item.parentId === menu.id && item.displayFlag) {
+        item.path = item.url;
+        item.parent = JSON.parse(JSON.stringify(menu));
+        childMenuList.push(item);
+      }
+    });
+
+    childMenuList.sort((a, b) => a.sort - b.sort);
+    menu.children = childMenuList;
+
+    if (menu.children.length > 0) {
+      menu.children.forEach((childMenu) => {
+        setChildMenu(childMenu, menuList);
+      });
+    }
+  }
+
+  parentMenuList.forEach((menu) => {
+    menu.path = menu.url;
+    menu.parent = null;
+    setChildMenu(menu, childMenuList);
+  });
 }
 
 export function getAllParentPath<T = Recordable>(treeData: T[], path: string) {

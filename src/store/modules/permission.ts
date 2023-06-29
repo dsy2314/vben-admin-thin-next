@@ -7,7 +7,11 @@ import { useUserStore } from './user';
 import { useAppStoreWithOut } from './app';
 import { toRaw } from 'vue';
 import { transformObjToRoute, flatMultiLevelRoutes } from '@/router/helper/routeHelper';
-import { transformRouteToMenu, setChildMenu } from '@/router/helper/menuHelper';
+import {
+  transformRouteToMenu,
+  setMenuTree,
+  transformMenuToRoute,
+} from '@/router/helper/menuHelper';
 
 import projectSetting from '@/settings/projectSetting';
 
@@ -169,20 +173,18 @@ export const usePermissionStore = defineStore({
           try {
             const data = await MenuAPI.listMenuWithOperationByUserId();
             const { allMenu = [], parentMenu = [] } = data;
+            // 把数据格式转换成系统需要的格式
             const parentMenuList = JSON.parse(
               JSON.stringify(parentMenu.filter((menu) => menu.displayFlag)),
             );
             const childMenuList = JSON.parse(
               JSON.stringify(allMenu.filter((menu) => menu.parentId !== 0)),
             );
-            parentMenuList.forEach((menu) => {
-              menu.path = menu.url;
-              menu.parent = null;
-              setChildMenu(menu, childMenuList);
-            });
+            setMenuTree(parentMenuList, childMenuList);
 
             console.log(parentMenuList);
-            routeList = parentMenuList;
+            // 数据转换成系统需要的格式
+            routeList = transformMenuToRoute(parentMenuList);
           } catch (error) {
             console.error(error);
           }
