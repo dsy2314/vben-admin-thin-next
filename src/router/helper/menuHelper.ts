@@ -5,7 +5,7 @@ import { cloneDeep } from 'lodash-es';
 import { isUrl } from '@/utils/is';
 import { RouteParams } from 'vue-router';
 import { toRaw } from 'vue';
-import { MenuModel } from '@/api/xstage/model/menu';
+import { MenuModel } from '@/api/xstage/types/menu';
 
 export function transformMenuToRoute(menuList) {
   function getRouteData(menuItem) {
@@ -13,7 +13,7 @@ export function transformMenuToRoute(menuList) {
       component: 'LAYOUT',
       meta: { title: 'routes.dashboard.dashboard', hideChildrenInMenu: true, icon: 'bx:bx-home' },
       name: menuItem.name,
-      path: menuItem.url,
+      path: menuItem.path,
       redirect: '/',
       children: [],
     };
@@ -32,14 +32,13 @@ export function setMenuTree(parentMenuList, childMenuList) {
   function setChildMenu(menu, menuList) {
     const childMenuList: Array<MenuModel> = [];
     menuList.forEach((item) => {
-      if (item.parentId === menu.id && item.displayFlag) {
-        item.path = item.url;
-        item.parent = JSON.parse(JSON.stringify(menu));
+      if (item.parentId === menu.id) {
+        item.$parent = JSON.parse(JSON.stringify(menu));
         childMenuList.push(item);
       }
     });
 
-    childMenuList.sort((a, b) => a.sort - b.sort);
+    // childMenuList.sort((a, b) => a.sort - b.sort);
     menu.children = childMenuList;
 
     if (menu.children.length > 0) {
@@ -50,8 +49,7 @@ export function setMenuTree(parentMenuList, childMenuList) {
   }
 
   parentMenuList.forEach((menu) => {
-    menu.path = menu.url;
-    menu.parent = null;
+    menu.$parent = null;
     setChildMenu(menu, childMenuList);
   });
 }

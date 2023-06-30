@@ -172,19 +172,56 @@ export const usePermissionStore = defineStore({
           let routeList: AppRouteRecordRaw[] = [];
           try {
             const data = await MenuAPI.listMenuWithOperationByUserId();
-            const { allMenu = [], parentMenu = [] } = data;
-            // 把数据格式转换成系统需要的格式
-            const parentMenuList = JSON.parse(
-              JSON.stringify(parentMenu.filter((menu) => menu.displayFlag)),
-            );
-            const childMenuList = JSON.parse(
-              JSON.stringify(allMenu.filter((menu) => menu.parentId !== 0)),
-            );
+            const { allMenu } = data;
+
+            const parentMenuList = [];
+            const childMenuList = [];
+            allMenu.forEach((menu) => {
+              if (!menu.displayFlag) return;
+
+              if (menu.parentId === 0) {
+                // @ts-ignore
+                parentMenuList.push({
+                  id: menu.id,
+                  parentId: menu.parentId,
+                  path: menu.url,
+                  name: menu.name,
+                  component: 'LAYOUT',
+                  redirect: '',
+                  meta: {
+                    icon: menu.icon,
+                    title: menu.name,
+                  },
+                  children: [],
+
+                  operationList: menu.operationList,
+                  dataRuleList: menu.dataRuleList,
+                });
+              } else {
+                // @ts-ignore
+                childMenuList.push({
+                  id: menu.id,
+                  parentId: menu.parentId,
+                  path: menu.url,
+                  name: menu.name,
+                  component: menu.url + '/index',
+                  redirect: '',
+                  meta: {
+                    icon: menu.icon,
+                    title: menu.name,
+                  },
+                  children: [],
+
+                  operationList: menu.operationList,
+                  dataRuleList: menu.dataRuleList,
+                });
+              }
+            });
+
             setMenuTree(parentMenuList, childMenuList);
 
-            console.log(parentMenuList);
-            // 数据转换成系统需要的格式
-            routeList = transformMenuToRoute(parentMenuList);
+            // routeList = transformMenuToRoute(parentMenuList);
+            routeList = JSON.parse(JSON.stringify(parentMenuList));
           } catch (error) {
             console.error(error);
           }
